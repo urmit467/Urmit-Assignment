@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 
 type Props = {
   docId: string;
@@ -11,14 +11,28 @@ type Props = {
 };
 
 export default function Cell({ docId, cellId, value }: Props) {
+
   const [localValue, setLocalValue] = useState(value);
 
+  // Update local value when firestore changes
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
   const saveCell = async () => {
+
     const ref = doc(db, "documents", docId);
 
-    await updateDoc(ref, {
-      [`cells.${cellId}`]: localValue,
-    });
+    await setDoc(
+      ref,
+      {
+        cells: {
+          [cellId]: localValue,
+        },
+      },
+      { merge: true }
+    );
+
   };
 
   return (

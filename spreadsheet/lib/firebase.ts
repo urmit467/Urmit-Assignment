@@ -3,9 +3,9 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "...",
-  authDomain: "...",
-  projectId: "...",
+  apiKey: "AIzaSyARF8XjBz9ZBt1aGEG0rbxIVz3i_Lmklv4",
+   authDomain: "urmit-assignment.firebaseapp.com",
+   projectId: "urmit-assignment",
 };
 
 const app = initializeApp(firebaseConfig);

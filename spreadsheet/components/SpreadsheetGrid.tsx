@@ -1,7 +1,7 @@
 "use client";
 
 import Cell from "./Cell";
-
+import { evaluateFormula } from "@/utils/formulaParser";
 type Props = {
   docId: string;
   cells: { [key: string]: string };
@@ -45,7 +45,7 @@ export default function SpreadsheetGrid({ docId, cells }: Props) {
                     key={cellId}
                     docId={docId}
                     cellId={cellId}
-                    value={cells[cellId] || ""}
+                    value={evaluateFormula(cells[cellId] || "", cells)}
                   />
                 );
               })}
