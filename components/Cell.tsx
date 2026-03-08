@@ -1,64 +1,94 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { useState, useEffect } from "react"
+import { db } from "@/lib/firebase"
+import { doc, setDoc } from "firebase/firestore"
 
 type Props = {
-  docId: string;
-  cellId: string;
-  value: string;
-};
+  docId: string
+  cellId: string
+  data?: {
+    value?: string
+    isBold?: boolean
+    italic?: boolean
+    color?: string
+  }
+}
 
-export default function Cell({ docId, cellId, value }: Props) {
+export default function Cell({ docId, cellId, data }: Props) {
 
-  const [localValue, setLocalValue] = useState(value);
+  const [value, setValue] = useState("")
+  const [isBold, setIsBold] = useState(false)
+  const [italic, setItalic] = useState(false)
+  const [color, setColor] = useState("#000000")
 
   useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
+
+    if (!data) return
+
+    setValue(data.value || "")
+    setIsBold(data.isBold || false)
+    setItalic(data.italic || false)
+    setColor(data.color || "#000000")
+
+  }, [data])
 
   const saveCell = async () => {
 
-    const ref = doc(db, "documents", docId);
+    const ref = doc(db, "documents", docId)
 
     await setDoc(
       ref,
       {
         cells: {
-          [cellId]: localValue,
-        },
+          [cellId]: {
+            value,
+            isBold,
+            italic,
+            color
+          }
+        }
       },
       { merge: true }
-    );
+    )
 
-  };
-
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-
-    if (e.key === "Enter") {
-
-      e.preventDefault();
-
-      await saveCell();
-
-      (e.target as HTMLInputElement).blur(); // exit editing
-
-    }
-
-  };
+  }
 
   return (
+
     <td className="border p-0">
 
+      <div className="flex gap-1 p-1 bg-gray-100 text-xs">
+
+        <button onClick={() => setIsBold(!isBold)}>
+          B
+        </button>
+
+        <button onClick={() => setItalic(!italic)}>
+          I
+        </button>
+
+        <input
+          type="color"
+          value={color}
+          onChange={(e) => setColor(e.target.value)}
+        />
+
+      </div>
+
       <input
-        className="w-full p-2 outline-none focus:bg-gray-100"
-        value={localValue}
-        onChange={(e) => setLocalValue(e.target.value)}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
         onBlur={saveCell}
-        onKeyDown={handleKeyDown}
+        className="w-full p-2 outline-none"
+        style={{
+          fontWeight: isBold ? "bold" : "normal",
+          fontStyle: italic ? "italic" : "normal",
+          color
+        }}
       />
 
     </td>
-  );
+
+  )
 }
