@@ -22,55 +22,39 @@ type User = {
 };
 
 export default function Editor() {
-  
 
   const params = useParams();
   const docId = params.id as string;
 
   const [cells, setCells] = useState<{ [key: string]: string }>({});
   const [users, setUsers] = useState<User[]>([]);
+  const [name, setName] = useState<string | null>(null);
 
   const [userId] = useState(() => crypto.randomUUID());
-
-  const [name, setName] = useState<string | null>(null);
 
   const [color] = useState(
     () => "#" + Math.floor(Math.random() * 16777215).toString(16)
   );
 
+
   useEffect(() => {
 
-  const ref = doc(db, "documents", docId);
-
-  const unsubscribe = onSnapshot(ref, (snapshot) => {
-
-    const data = snapshot.data();
-
-    if (data && data.cells) {
-      setCells(data.cells);
-    }
-
-  });
-
-  return () => unsubscribe();
-  
-}, [docId]);
-
-  // Load saved name
-  useEffect(() => {
-    const savedName = localStorage.getItem("spreadsheet-user");
+    const savedName = sessionStorage.getItem("spreadsheet-user");
 
     if (savedName) {
       setName(savedName);
     }
+
   }, []);
 
   const handleNameSubmit = (newName: string) => {
-    localStorage.setItem("spreadsheet-user", newName);
+
+    sessionStorage.setItem("spreadsheet-user", newName);
     setName(newName);
+
   };
 
-  // Realtime spreadsheet updates
+
   useEffect(() => {
 
     const ref = doc(db, "documents", docId);
@@ -91,29 +75,28 @@ export default function Editor() {
 
 
 
-  // Register presence
   useEffect(() => {
 
-    if (!name) return;
+  if (!name) return;
 
-    const presenceRef = doc(db, "presence", userId);
+  const presenceRef = doc(db, "presence", userId);
 
-    setDoc(presenceRef, {
-      docId,
-      name,
-      color,
-      lastActive: serverTimestamp(),
-    });
+  setDoc(presenceRef, {
+    docId,
+    name,
+    color,
+    lastActive: serverTimestamp(),
+  });
 
-    return () => {
-      deleteDoc(presenceRef);
-    };
+  return () => {
+    deleteDoc(presenceRef);
+  };
 
-  }, [docId, name, userId, color]);
+}, [docId, name, userId, color]);
 
 
 
-  // Listen for active users
+
   useEffect(() => {
 
     const ref = collection(db, "presence");
@@ -127,11 +110,13 @@ export default function Editor() {
         const data = doc.data();
 
         if (data.docId === docId) {
+
           activeUsers.push({
             id: doc.id,
             name: data.name,
             color: data.color,
           });
+
         }
 
       });
@@ -145,30 +130,35 @@ export default function Editor() {
   }, [docId]);
 
 
-
-  // Show identity popup if user not set
   if (!name) {
     return <IdentityModal onSubmit={handleNameSubmit} />;
   }
 
 
-
   return (
-    <main className="p-6">
 
-      <h1 className="text-xl font-bold mb-4">
-        Spreadsheet Editor
-      </h1>
+    <div className="min-h-screen bg-gray-100 p-6">
 
-      {/* Active users */}
-      <Presence users={users} />
+      <div className="max-w-6xl mx-auto">
 
-      {/* Spreadsheet */}
-      <SpreadsheetGrid
-        docId={docId}
-        cells={cells}
-      />
+        <h1 className="text-2xl font-semibold mb-4">
+          Spreadsheet Editor
+        </h1>
 
-    </main>
+        {/* Active Users */}
+        <Presence users={users} />
+
+        {/* Spreadsheet */}
+        <div className="bg-white border rounded-lg shadow overflow-hidden mt-4">
+          <SpreadsheetGrid
+            docId={docId}
+            cells={cells}
+          />
+        </div>
+
+      </div>
+
+    </div>
+
   );
 }

@@ -14,7 +14,6 @@ export default function Cell({ docId, cellId, value }: Props) {
 
   const [localValue, setLocalValue] = useState(value);
 
-  // Update local value when firestore changes
   useEffect(() => {
     setLocalValue(value);
   }, [value]);
@@ -35,14 +34,31 @@ export default function Cell({ docId, cellId, value }: Props) {
 
   };
 
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+
+    if (e.key === "Enter") {
+
+      e.preventDefault();
+
+      await saveCell();
+
+      (e.target as HTMLInputElement).blur(); // exit editing
+
+    }
+
+  };
+
   return (
     <td className="border p-0">
+
       <input
-        className="w-full p-2 outline-none"
+        className="w-full p-2 outline-none focus:bg-gray-100"
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
         onBlur={saveCell}
+        onKeyDown={handleKeyDown}
       />
+
     </td>
   );
 }
